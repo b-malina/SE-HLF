@@ -1,0 +1,10 @@
+/bin
+/build
+/.build/
+/docs/build/*
+.DS_Store
+.gradle
+.idea
+*.iml
+*.log
+.vscode

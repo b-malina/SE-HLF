@@ -37,9 +37,9 @@ public class SE {
         HashMap<String, String> keywordsDict = new HashMap<>();
 
         //////////////////////////////// KEYWORDS ////////////////////////////////
-        keywordsDict.put("this", "text1.txt");
-        keywordsDict.put("plaintext", "text2.txt");
-        keywordsDict.put("help", "text3.txt");
+        keywordsDict.put("plaintext", "text1.txt");
+        keywordsDict.put("this", "text2.txt");
+        keywordsDict.put("pt", "text3.txt");
 
         System.out.println("\ninit keydict");
         for (Map.Entry entry : keywordsDict.entrySet())
@@ -53,12 +53,8 @@ public class SE {
             for (int k = 0; k < A[0].length; k++)
                 A[d][k] = "0";
 
-        List<String> encDocNames = Utils.buildIndex(docNames, keywordsDict, symmetricKey1, A, P,
+        Utils.buildIndex(docNames, keywordsDict, symmetricKey1, A, P,
                 secureRandom, ivParameterSpec);
-
-        System.out.println("\n" + "LENGTH " + encDocNames.size());
-        for (String str : encDocNames)
-            System.out.println("\n" + "FINAL DOC NAMES ENC " + str);
         for (int i = 0; i < A.length; i++) {
             for (int j = 0; j < A[0].length; j++)
                 System.out.print(A[i][j] + " ");

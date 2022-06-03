@@ -62,7 +62,7 @@ public class Utils {
         return keyGenerator.generateKey();
     }
 
-    public static List<String> buildIndex(List<String> docNames, Map<String, String> keywordsDict, Key symmetricKey,
+    public static void buildIndex(List<String> docNames, Map<String, String> keywordsDict, Key symmetricKey,
             String[][] A, BigInteger P, SecureRandom secureRandom, IvParameterSpec ivParameterSpec)
             throws Exception {
         List<String> encDocNames = new ArrayList<>();
@@ -82,37 +82,40 @@ public class Utils {
         for (Map.Entry<String, String> entry : keywordsDict.entrySet()) {
             String W = entry.getKey();
             String docID = entry.getValue();
-            String docContent = new String(Files.readAllBytes(Paths.get(docID)));
-            String[] docContentArr = docContent.split(" ");
-            File encDocName = new File(docID.split(".txt")[0] + "_enc.txt");
 
-            // empty file first
-            PrintWriter writer = new PrintWriter(encDocName);
-            writer.print("");
-            writer.close();
-            FileWriter fw = new FileWriter(encDocName, true);
-            BufferedWriter bw = new BufferedWriter(fw);
+            for (int d = 1; d < docNames.size(); d++) {
+                String currDoc = docNames.get(d);
+                String docContent = new String(Files.readAllBytes(Paths.get(currDoc)));
+                String[] docContentArr = docContent.split(" ");
+                File encDocName = new File(docID.split(".txt")[0] + "_enc.txt");
 
-            int u = 0;
-            while (u < docContentArr.length) {
-                System.out.println(u + " " + t + " " + docContentArr[u] + " " + W);
+                // empty file first
+                PrintWriter writer = new PrintWriter(encDocName);
+                writer.print("");
+                writer.close();
+                FileWriter fw = new FileWriter(encDocName, true);
+                BufferedWriter bw = new BufferedWriter(fw);
 
-                // TODO : split punctuation
-                if (docContentArr[u].toLowerCase().equals(W.toLowerCase())) {
-                    // System.out.println(u + " " + t + " " + docContentArr[u] + " " + W);
-                    System.out.println("yes");
-                    BigInteger val = new BigInteger(A[u + 1][t]);
-                    val = val.add(new BigInteger("1")).mod(P);
-                    A[u + 1][t] = val.toString(); // hmacService.calculateHmac(val.toString());
+                int u = 0;
+                while (u < docContentArr.length) {
+                    System.out.println(u + " " + t + " " + docContentArr[u] + " " + W);
+
+                    // TODO : split punctuation
+                    if (docContentArr[u].toLowerCase().equals(W.toLowerCase())) {
+                        // System.out.println(u + " " + t + " " + docContentArr[u] + " " + W);
+                        System.out.println("yes");
+                        BigInteger val = new BigInteger(A[d + 1][t]);
+                        val = val.add(new BigInteger("1")).mod(P);
+                        A[d + 1][t] = val.toString(); // hmacService.calculateHmac(val.toString());
+                    }
+                    String encDocWord = encrypt(docContentArr[u].toLowerCase(), symmetricKey, ivParameterSpec);
+                    // System.out.println("1--- " + docContentArr[u] + " ----->>>> " + encDocWord);
+                    bw.append(encDocWord + "__");
+                    u++;
                 }
-                String encDocWord = encrypt(docContentArr[u], symmetricKey, ivParameterSpec);
-                // System.out.println("1--- " + docContentArr[u] + " ----->>>> " + encDocWord);
-                bw.append(encDocWord + "__");
-                u++;
+                bw.flush();
+                bw.close();
             }
-            bw.flush();
-            bw.close();
-            encDocNames.add(encDocName.getName());
             t++;
         }
 
@@ -148,7 +151,6 @@ public class Utils {
                 // System.out.println("aft AADASAA " + A[n][m]);
 
             }
-        return encDocNames;
     }
 
     public static Trapdoor buildTrapdoor(Key symmetricKey, String keyword, BigInteger P,
@@ -158,6 +160,7 @@ public class Utils {
             SignatureException, IllegalStateException, UnsupportedEncodingException,
             InvalidAlgorithmParameterException {
 
+        keyword = keyword.toLowerCase();
         String bByte = encrypt(keyword, symmetricKey, ivParameterSpec);
         BigInteger b = new BigInteger(bByte, 16).mod(P);
         System.out.print("\nb==\n" + b);

@@ -15,8 +15,6 @@ import static org.mockito.Mockito.when;
 
 import java.nio.charset.StandardCharsets;
 
-import org.chaincode.Asset;
-import org.chaincode.AssetContract;
 import org.hyperledger.fabric.contract.Context;
 import org.hyperledger.fabric.shim.ChaincodeStub;
 import org.junit.jupiter.api.Nested;
@@ -35,7 +33,7 @@ public final class AssetContractTest {
             when(ctx.getStub()).thenReturn(stub);
 
             when(stub.getState("10001")).thenReturn(new byte[] {});
-            boolean result = contract.assetExists(ctx, "10001");
+            boolean result = contract.documentExists(ctx, "10001");
 
             assertFalse(result);
         }
@@ -49,7 +47,7 @@ public final class AssetContractTest {
             when(ctx.getStub()).thenReturn(stub);
 
             when(stub.getState("10001")).thenReturn(new byte[] { 42 });
-            boolean result = contract.assetExists(ctx, "10001");
+            boolean result = contract.documentExists(ctx, "10001");
 
             assertTrue(result);
 
@@ -63,7 +61,7 @@ public final class AssetContractTest {
             when(ctx.getStub()).thenReturn(stub);
 
             when(stub.getState("10002")).thenReturn(null);
-            boolean result = contract.assetExists(ctx, "10002");
+            boolean result = contract.documentExists(ctx, "10002");
 
             assertFalse(result);
 
@@ -81,9 +79,11 @@ public final class AssetContractTest {
             ChaincodeStub stub = mock(ChaincodeStub.class);
             when(ctx.getStub()).thenReturn(stub);
 
-            String json = "{\"value\":\"TheAsset\"}";
+            // String json =
+            // "{\"documentId\":\"10001\",\"documentName\":\"TheAsset\",\"keyword\":\"Keyword\",\"content\":\"Content\"}";
+            String json = "{\"content\":\"Content\",\"id\":\"10001\",\"keyword\":\"Keyword\",\"name\":\"TheAsset\"}";
 
-            contract.createAsset(ctx, "10001", "TheAsset");
+            contract.createDocument(ctx, "10001", "TheAsset", "Keyword", "Content");
 
             verify(stub).putState("10001", json.getBytes(UTF_8));
         }
@@ -98,10 +98,11 @@ public final class AssetContractTest {
             when(stub.getState("10002")).thenReturn(new byte[] { 42 });
 
             Exception thrown = assertThrows(RuntimeException.class, () -> {
-                contract.createAsset(ctx, "10002", "TheAsset");
+                contract.createDocument(ctx, "10002", "TheAsset", "Keyword", "Content");
             });
 
-            assertEquals(thrown.getMessage(), "The asset 10002 already exists");
+            System.out.println("AA " + thrown.getMessage());
+            assertEquals(thrown.getMessage(), "The document 10002 already exists");
 
         }
 
@@ -114,49 +115,49 @@ public final class AssetContractTest {
         ChaincodeStub stub = mock(ChaincodeStub.class);
         when(ctx.getStub()).thenReturn(stub);
 
-        Asset asset = new Asset();
-        asset.setValue("Valuable");
+        Document asset = new Document();
+        asset.setContent("New Content");
 
         String json = asset.toJSONString();
         when(stub.getState("10001")).thenReturn(json.getBytes(StandardCharsets.UTF_8));
 
-        Asset returnedAsset = contract.readAsset(ctx, "10001");
-        assertEquals(returnedAsset.getValue(), asset.getValue());
+        Document returnedAsset = contract.readDocument(ctx, "10001");
+        assertEquals(returnedAsset.getContent(), asset.getContent());
     }
 
-    @Nested
-    class AssetUpdates {
-        @Test
-        public void updateExisting() {
-            AssetContract contract = new AssetContract();
-            Context ctx = mock(Context.class);
-            ChaincodeStub stub = mock(ChaincodeStub.class);
-            when(ctx.getStub()).thenReturn(stub);
-            when(stub.getState("10001")).thenReturn(new byte[] { 42 });
+    // @Nested
+    // class AssetUpdates {
+    // @Test
+    // public void updateExisting() {
+    // AssetContract contract = new AssetContract();
+    // Context ctx = mock(Context.class);
+    // ChaincodeStub stub = mock(ChaincodeStub.class);
+    // when(ctx.getStub()).thenReturn(stub);
+    // when(stub.getState("10001")).thenReturn(new byte[] { 42 });
 
-            contract.updateAsset(ctx, "10001", "updates");
+    // contract.updateAsset(ctx, "10001", "updates");
 
-            String json = "{\"value\":\"updates\"}";
-            verify(stub).putState("10001", json.getBytes(UTF_8));
-        }
+    // String json = "{\"value\":\"updates\"}";
+    // verify(stub).putState("10001", json.getBytes(UTF_8));
+    // }
 
-        @Test
-        public void updateMissing() {
-            AssetContract contract = new AssetContract();
-            Context ctx = mock(Context.class);
-            ChaincodeStub stub = mock(ChaincodeStub.class);
-            when(ctx.getStub()).thenReturn(stub);
+    // @Test
+    // public void updateMissing() {
+    // AssetContract contract = new AssetContract();
+    // Context ctx = mock(Context.class);
+    // ChaincodeStub stub = mock(ChaincodeStub.class);
+    // when(ctx.getStub()).thenReturn(stub);
 
-            when(stub.getState("10001")).thenReturn(null);
+    // when(stub.getState("10001")).thenReturn(null);
 
-            Exception thrown = assertThrows(RuntimeException.class, () -> {
-                contract.updateAsset(ctx, "10001", "TheAsset");
-            });
+    // Exception thrown = assertThrows(RuntimeException.class, () -> {
+    // contract.updateAsset(ctx, "10001", "TheAsset");
+    // });
 
-            assertEquals(thrown.getMessage(), "The asset 10001 does not exist");
-        }
+    // assertEquals(thrown.getMessage(), "The asset 10001 does not exist");
+    // }
 
-    }
+    // }
 
     @Test
     public void assetDelete() {
@@ -167,10 +168,10 @@ public final class AssetContractTest {
         when(stub.getState("10001")).thenReturn(null);
 
         Exception thrown = assertThrows(RuntimeException.class, () -> {
-            contract.deleteAsset(ctx, "10001");
+            contract.deleteDocument(ctx, "10001");
         });
 
-        assertEquals(thrown.getMessage(), "The asset 10001 does not exist");
+        assertEquals(thrown.getMessage(), "The document 10001 does not exist");
     }
 
 }

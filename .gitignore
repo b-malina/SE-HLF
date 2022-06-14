@@ -9,5 +9,4 @@
 *.log
 .vscode
 gradle/wrapper
-organizations
 gradlew

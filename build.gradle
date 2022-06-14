@@ -1,14 +1,20 @@
 /*
  * SPDX-License-Identifier: Apache-2.0
  */
+
 plugins {
     id 'com.github.johnrengelman.shadow' version '5.2.0'
     id 'java'
+    id 'distribution'
 }
+
+apply plugin: "application"
+
 
 version '0.0.1'
 
 sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 repositories {
     mavenLocal()
@@ -19,7 +25,7 @@ repositories {
 }
 
 dependencies {
-    compile group: 'javax.xml.bind', name: 'jaxb-api', version: '2.3.1'
+    implementation 'javax.xml.bind:jaxb-api:2.2.4'
     implementation 'org.hyperledger.fabric:fabric-gateway-java:2.2.0'
     implementation 'org.hyperledger.fabric-chaincode-java:fabric-chaincode-shim:2.4.+'
     implementation 'com.owlike:genson:1.6'
@@ -28,6 +34,9 @@ dependencies {
     testImplementation 'org.assertj:assertj-core:3.11.1'
     testImplementation 'org.mockito:mockito-core:2.+'
 }
+
+
+mainClassName = 'org.hyperledger.fabric.contract.ContractRouter'
 
 shadowJar {
     baseName = 'chaincode'
@@ -50,3 +59,5 @@ test {
 tasks.withType(JavaCompile) {
   options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation" << "-parameters"
 }
+
+installDist
